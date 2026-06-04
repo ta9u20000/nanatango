@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英単語マスタークイズ</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #f5a623;
+            --success: #2ec4b6;
+            --danger: #e71d36;
+            --background: #f8f9fa;
+            --card-bg: #ffffff;
+            --text: #2b2d42;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-size: 24px;
+            margin-top: 0;
+        }
+        .mode-select {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .mode-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--success);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        /* 単語カードスタイル */
+        .flashcard {
+            min-height: 200px;
+            background: #f1f7fe;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            cursor: pointer;
+            text-align: center;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+            margin-bottom: 20px;
+        }
+        .word-eng {
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+        .word-jpn {
+            font-size: 24px;
+            color: var(--secondary);
+            font-weight: bold;
+        }
+        .sentence-box {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #666;
+            border-top: 1px dashed #ccc;
+            padding-top: 10px;
+            width: 100%;
+        }
+        /* クイズスタイル */
+        .quiz-word {
+            font-size: 32px;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .option-btn {
+            padding: 14px;
+            background: #fff;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            text-align: left;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .option-btn:hover {
+            background: #f0f0f0;
+        }
+        .option-btn.correct {
+            background: #d4edda;
+            border-color: var(--success);
+            color: #155724;
+        }
+        .option-btn.wrong {
+            background: #f8d7da;
+            border-color: var(--danger);
+            color: #721c24;
+        }
+        .nav-btns {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-sub { background: #6c757d; color: white; }
+        .hidden { display: none !important; }
+        .result-screen {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .score {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📚 えいたんごマスター</h1>
+    
+    <div class="mode-select">
+        <button class="mode-btn active" onclick="switchMode('card')">カード（あんき）</button>
+        <button class="mode-btn" onclick="switchMode('quiz')">4たくクイズ</button>
+    </div>
+
+    <div id="game-zone">
+        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
+        
+        <!-- 単語カードモード -->
+        <div id="card-mode">
+            <div class="flashcard" onclick="flipCard()">
+                <div id="card-front" class="word-eng">word</div>
+                <div id="card-back" class="word-jpn hidden">意味</div>
+                <div id="card-sentence" class="sentence-box hidden">
+                    <p id="sent-eng" style="font-weight: bold;"></p>
+                    <p id="sent-jpn"></p>
+                </div>
+            </div>
+            <p style="text-align:center; color:#999; font-size:12px; margin-top:-10px;">★カードをタッチすると答えが出るよ</p>
+            <div class="nav-btns">
+                <button class="btn btn-sub" onclick="prevQuestion()">まえへ</button>
+                <button class="btn btn-main" onclick="nextQuestion()">つぎへ</button>
+            </div>
+        </div>
+
+        <!-- クイズモード -->
+        <div id="quiz-mode" class="hidden">
+            <div id="quiz-q" class="quiz-word">word</div>
+            <div class="options" id="quiz-options"></div>
+            <div id="quiz-feedback" class="sentence-box hidden" style="border-top:none; background:#f9f9f9; padding:10px; border-radius:8px;">
+                <p id="quiz-sent-eng" style="font-weight: bold; color:var(--primary);"></p>
+                <p id="quiz-sent-jpn"></p>
+            </div>
+            <div class="nav-btns">
+                <div></div>
+                <button id="quiz-next-btn" class="btn btn-main hidden" onclick="nextQuestion()">つぎへ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 結果画面 -->
+    <div id="result-zone" class="result-screen hidden">
+        <h2>おつかれさまでした！🎉</h2>
+        <div class="score"><span id="correct-count">0</span> / <span id="total-count">0</span></div>
+        <p id="result-msg">よくがんばったね！</p>
+        <button class="btn btn-main" onclick="restartGame(false)">もういちど（最初から）</button>
+        <button id="retry-wrong-btn" class="btn btn-sub" onclick="restartGame(true)" style="margin-top:10px; width:100%;">まちがえた問題だけやる</button>
+    </div>
+</div>
+
+<script>
+// 画像（IMG_7229, IMG_7230, IMG_7231）から全39単語を抽出したデータ
+const wordData = [
+    // IMG_7231 (名詞⑤)
+    {eng: "dollar", jpn: "ドル（貨幣単位）", sEng: "The notebook is two dollars.", sJpn: "そのノートは2ドルです。"},
+    {eng: "door", jpn: "ドア、戸", sEng: "Please open the door.", sJpn: "ドアを開けてください。"},
+    {eng: "wall", jpn: "かべ、へい", sEng: "Look at the picture on the wall.", sJpn: "かべにかかっている写真を見なさい。"},
+    {eng: "bag", jpn: "バッグ、かばん、袋", sEng: "Which bag is yours?", sJpn: "どちらのバッグがあなたのものですか。"},
+    {eng: "box", jpn: "箱", sEng: "What is in that box?", sJpn: "あの箱の中には何が入っていますか。"},
+    {eng: "camera", jpn: "カメラ", sEng: "Is this your new camera?", sJpn: "これはあなたの新しいカメラですか。"},
+    {eng: "watch", jpn: "腕時計", sEng: "Your watch is nice.", sJpn: "あなたの腕時計はすてきですね。"},
+    {eng: "bath", jpn: "入浴", sEng: "What time do you usually take a bath?", sJpn: "あなたはふつう何時にお風呂に入りますか。"},
+    {eng: "dish", jpn: "皿、料理", sEng: "I wash the dishes every day.", sJpn: "私は毎日、食器を洗います。"},
+    {eng: "piano", jpn: "ピアノ", sEng: "I practice the piano on Saturdays.", sJpn: "私は土曜日にピアノを練習します。"},
+    {eng: "card", jpn: "カード、はがき", sEng: "I write Christmas cards to my friends.", sJpn: "私は友達にクリスマスカードを書きます。"},
+    {eng: "classmate", jpn: "クラスメイト、同級生", sEng: "Tom and I are classmates.", sJpn: "トムと私はクラスメイトです。"},
+    {eng: "class", jpn: "授業、クラス", sEng: "We have an English class today.", sJpn: "今日、私たちは英語の授業があります。"},
+
+    // IMG_7229 (名詞⑥)
+    {eng: "club", jpn: "クラブ、部", sEng: "He wants to join the art club.", sJpn: "彼は美術部に入りたがっています。"},
+    {eng: "friend", jpn: "友達", sEng: "I often talk with my friends.", sJpn: "私はよく私の友達と話します。"},
+    {eng: "school", jpn: "学校", sEng: "I come to school at eight.", sJpn: "私は8時に学校に来ます。"},
+    {eng: "classroom", jpn: "教室", sEng: "Where is your classroom?", sJpn: "あなたの教室はどこですか。"},
+    {eng: "homework", jpn: "宿題", sEng: "I usually do my homework before dinner.", sJpn: "私はふつう夕食の前に宿題をします。"},
+    {eng: "subject", jpn: "教科、科目", sEng: "What subjects do you like?", sJpn: "あなたは何の教科が好きですか。"},
+    {eng: "art", jpn: "芸術、美術", sEng: "My brother studies art in London.", sJpn: "私の兄[弟]はロンドンで芸術を勉強しています。"},
+    {eng: "player", jpn: "選手、競技者", sEng: "She is a good basketball player.", sJpn: "彼女は上手なバスケットボール選手です。"},
+    {eng: "ball", jpn: "ボール、球", sEng: "My dog can catch a ball.", sJpn: "私のイヌはボールをとることができます。"},
+    {eng: "game", jpn: "試合、（娯楽の）ゲーム", sEng: "He likes watching soccer games.", sJpn: "彼はサッカーの試合を見るのが好きです。"},
+    {eng: "team", jpn: "チーム、組", sEng: "Are you on the baseball team?", sJpn: "あなたは野球部に入っていますか。"},
+    {eng: "special", jpn: "おすすめ、特別のもの", sEng: "What is today's special?", sJpn: "本日のおすすめは何ですか。"},
+    {eng: "child", jpn: "子ども", sEng: "Do you know the child?", sJpn: "あなたはその子どもを知っていますか。"},
+
+    // IMG_7230 (名詞⑦)
+    {eng: "life", jpn: "生活、暮らし、一生、生命", sEng: "How is your life in Australia?", sJpn: "あなたのオーストラリアでの生活はどうですか。"},
+    {eng: "people", jpn: "人々、国民", sEng: "Are these people from America?", sJpn: "これらの人々はアメリカ出身ですか。"},
+    {eng: "student", jpn: "学生、生徒", sEng: "We are students at this school.", sJpn: "私たちはこの学校の生徒です。"},
+    {eng: "parent", jpn: "親、（複数形で）両親", sEng: "I love my parents.", sJpn: "私は両親を愛しています。"},
+    {eng: "Mr.", jpn: "（男性に対して）〜さん、〜先生", sEng: "We sometimes help Mr. Green.", sJpn: "私たちはときどきグリーン先生の手伝いをします。"},
+    {eng: "Ms.", jpn: "（女性に対して）〜さん、〜先生", sEng: "That woman is dashed Ms. White.", sJpn: "あの女の人はホワイト先生です。"},
+    {eng: "dad", jpn: "お父さん", sEng: "Please help me, Dad.", sJpn: "手伝って、お父さん。"},
+    {eng: "mom", jpn: "お母さん", sEng: "I'm home, Mom.", sJpn: "ただいま、お母さん。"},
+    {eng: "man", jpn: "男性、男の人", sEng: "The man is our teacher.", sJpn: "その男性は私たちの先生です。"},
+    {eng: "woman", jpn: "女性、女の人", sEng: "Look at that beautiful woman.", sJpn: "あちらの美しい女性を見て。"},
+    {eng: "boy", jpn: "少年、男の子", sEng: "That boy is John.", sJpn: "あの男の子はジョンです。"},
+    {eng: "girl", jpn: "少女、女の子", sEng: "Who is this girl?", sJpn: "この女の子はだれですか。"},
+    {eng: "person", jpn: "人、個人", sEng: "That woman is an important person for us.", sJpn: "あの女性は私たちにとって重要な人です。"}
+];
+
+let currentWords = [...wordData];
+let wrongWords = [];
+let currentIndex = 0;
+let currentMode = 'card'; // 'card' or 'quiz'
+let isFlipped = false;
+let quizScore = 0;
+let hasAnsweredQuiz = false;
+
+// シャッフル関数
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+// モード切り替え
+function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    if(mode === 'card') {
+        document.querySelectorAll('.mode-btn')[0].classList.add('active');
+        document.getElementById('card-mode').classList.remove('hidden');
+        document.getElementById('quiz-mode').classList.add('hidden');
+    } else {
+        document.querySelectorAll('.mode-btn')[1].classList.add('active');
+        document.getElementById('card-mode').classList.add('hidden');
+        document.getElementById('quiz-mode').classList.remove('hidden');
+    }
+    restartGame(false);
+}
+
+// ゲーム初期化
+function restartGame(onlyWrong = false) {
+    if (onlyWrong && wrongWords.length > 0) {
+        currentWords = [...wrongWords];
+    } else {
+        currentWords = [...wordData];
+        shuffle(currentWords);
+    }
+    wrongWords = [];
+    currentIndex = 0;
+    quizScore = 0;
+    
+    document.getElementById('game-zone').classList.remove('hidden');
+    document.getElementById('result-zone').classList.add('hidden');
+    
+    showCurrentQuestion();
+}
+
+// 問題表示
+function showCurrentQuestion() {
+    if(currentWords.length === 0) return;
+    
+    // 進捗バー
+    const progressPercent = (currentIndex / currentWords.length) * 100;
+    document.getElementById('progress').style.width = `${progressPercent}%`;
+
+    const current = currentWords[currentIndex];
+
+    if(currentMode === 'card') {
+        // カードモードの表示
+        isFlipped = false;
+        document.getElementById('card-front').innerText = current.eng;
+        document.getElementById('card-back').innerText = current.jpn;
+        document.getElementById('sent-eng').innerText = current.sEng;
+        document.getElementById('sent-jpn').innerText = current.sJpn;
+        
+        document.getElementById('card-back').classList.add('hidden');
+        document.getElementById('card-sentence').classList.add('hidden');
+    } else {
+        // クイズモードの表示
+        hasAnsweredQuiz = false;
+        document.getElementById('quiz-q').innerText = current.eng;
+        document.getElementById('quiz-feedback').classList.add('hidden');
+        document.getElementById('quiz-next-btn').classList.add('hidden');
+
+        // 4択の選択肢作成
+        let choices = [current.jpn];
+        let allJpn = wordData.map(w => w.jpn).filter(j => j !== current.jpn);
+        shuffle(allJpn);
+        for(let i=0; i<3; i++) {
+            if(allJpn[i]) choices.push(allJpn[i]);
+        }
+        shuffle(choices);
+
+        const optionsContainer = document.getElementById('quiz-options');
+        optionsContainer.innerHTML = '';
+        choices.forEach(choice => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = choice;
+            btn.onclick = () => checkQuizAnswer(btn, choice, current.jpn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+}
+
+// カードをめくる
+function flipCard() {
+    if(currentMode !== 'card') return;
+    isFlipped = !isFlipped;
+    if(isFlipped) {
+        document.getElementById('card-back').classList.remove('hidden');
+        document.getElementById('card-sentence').classList.remove('hidden');
+    } else {
+        document.getElementById('card-back').classList.add('hidden');
+        document.getElementById('card-sentence').classList.add('hidden');
+    }
+}
+
+// クイズの答え合わせ
+function checkQuizAnswer(selectedBtn, chosen, correct) {
+    if(hasAnsweredQuiz) return;
+    hasAnsweredQuiz = true;
+
+    const current = currentWords[currentIndex];
+    document.getElementById('quiz-sent-eng').innerText = current.sEng;
+    document.getElementById('quiz-sent-jpn').innerText = current.sJpn;
+    document.getElementById('quiz-feedback').classList.remove('hidden');
+    document.getElementById('quiz-next-btn').classList.remove('hidden');
+
+    if(chosen === correct) {
+        selectedBtn.classList.add('correct');
+        quizScore++;
+    } else {
+        selectedBtn.classList.add('wrong');
+        wrongWords.push(current);
+        // 正解のボタンも光らせる
+        const buttons = document.querySelectorAll('.option-btn');
+        buttons.forEach(b => {
+            if(b.innerText === correct) b.classList.add('correct');
+        });
+    }
+}
+
+// 次へ / 前へ
+function nextQuestion() {
+    currentIndex++;
+    if(currentIndex >= currentWords.length) {
+        showResult();
+    } else {
+        showCurrentQuestion();
+    }
+}
+
+function prevQuestion() {
+    if(currentIndex > 0) {
+        currentIndex--;
+        showCurrentQuestion();
+    }
+}
+
+// 結果発表
+function showResult() {
+    document.getElementById('game-zone').classList.add('hidden');
+    document.getElementById('result-zone').classList.remove('hidden');
+
+    document.getElementById('total-count').innerText = currentWords.length;
+    
+    if(currentMode === 'card') {
+        document.getElementById('correct-count').innerText = currentWords.length;
+        document.getElementById('result-msg').innerText = "ぜんぶチェックしたよ！えらい！";
+        document.getElementById('retry-wrong-btn').classList.add('hidden');
+    } else {
+        document.getElementById('correct-count').innerText = quizScore;
+        if(wrongWords.length > 0) {
+            document.getElementById('result-msg').innerText = "まちがえた問題をもう一回やってみよう！";
+            document.getElementById('retry-wrong-btn').classList.remove('hidden');
+        } else {
+            document.getElementById('result-msg').innerText = "満点！パーフェクト！すごすぎる！";
+            document.getElementById('retry-wrong-btn').classList.add('hidden');
+        }
+    }
+}
+
+// スタート
+restartGame();
+</script>
+
+</body>
+</html>
