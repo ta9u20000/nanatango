@@ -1,461 +1,822 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英単語マスタークイズ</title>
-    <style>
-        :root {
-            --primary: #4a90e2;
-            --secondary: #f5a623;
-            --success: #2ec4b6;
-            --danger: #e71d36;
-            --background: #f8f9fa;
-            --card-bg: #ffffff;
-            --text: #2b2d42;
-        }
-        body {
-            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
-            background-color: var(--background);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .container {
-            max-width: 600px;
-            width: 100%;
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            box-sizing: border-box;
-        }
-        h1 {
-            text-align: center;
-            color: var(--primary);
-            font-size: 24px;
-            margin-top: 0;
-        }
-        .mode-select {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        .mode-btn {
-            flex: 1;
-            padding: 12px;
-            border: 2px solid var(--primary);
-            background: transparent;
-            color: var(--primary);
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .mode-btn.active {
-            background: var(--primary);
-            color: white;
-        }
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: #eee;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%;
-            background: var(--success);
-            width: 0%;
-            transition: width 0.3s;
-        }
-        /* 単語カードスタイル */
-        .flashcard {
-            min-height: 200px;
-            background: #f1f7fe;
-            border-radius: 12px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            cursor: pointer;
-            text-align: center;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
-            margin-bottom: 20px;
-        }
-        .word-eng {
-            font-size: 36px;
-            font-weight: bold;
-            color: var(--primary);
-            margin-bottom: 10px;
-        }
-        .word-jpn {
-            font-size: 24px;
-            color: var(--secondary);
-            font-weight: bold;
-        }
-        .sentence-box {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #666;
-            border-top: 1px dashed #ccc;
-            padding-top: 10px;
-            width: 100%;
-        }
-        /* クイズスタイル */
-        .quiz-word {
-            font-size: 32px;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        .options {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .option-btn {
-            padding: 14px;
-            background: #fff;
-            border: 2px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            text-align: left;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .option-btn:hover {
-            background: #f0f0f0;
-        }
-        .option-btn.correct {
-            background: #d4edda;
-            border-color: var(--success);
-            color: #155724;
-        }
-        .option-btn.wrong {
-            background: #f8d7da;
-            border-color: var(--danger);
-            color: #721c24;
-        }
-        .nav-btns {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-        }
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-main { background: var(--primary); color: white; }
-        .btn-sub { background: #6c757d; color: white; }
-        .hidden { display: none !important; }
-        .result-screen {
-            text-align: center;
-            padding: 20px 0;
-        }
-        .score {
-            font-size: 48px;
-            font-weight: bold;
-            color: var(--primary);
-            margin: 20px 0;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>MACS英単語</title>
+<style>
+  :root{
+    --accent:#f5a623;        /* メインのイエロー〜アンバー */
+    --accent2:#ff8a3d;       /* オレンジ */
+    --accent3:#ffe07a;       /* やさしいレモン */
+    --txt:#5b4a2a; --sub:#b3a06f; --line:#fbe7bd;
+    --card:#ffffff; --soft:#fff8e6;
+    --ok:#2bbb6e; --ng:#ff5b5b;
+    --btnink:#6b4a00;        /* 黄色ボタン上の文字色 */
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; color:var(--txt);
+    font-family:ui-rounded,"Hiragino Maru Gothic ProN",-apple-system,BlinkMacSystemFont,"Hiragino Sans","Helvetica Neue",sans-serif;
+    -webkit-text-size-adjust:100%;}
+  body{min-height:100vh; display:flex; flex-direction:column;
+    background:
+      radial-gradient(900px 500px at 8% -8%, #fff0bf 0%, rgba(255,240,191,0) 60%),
+      radial-gradient(900px 600px at 110% 5%, #ffe6c2 0%, rgba(255,230,194,0) 55%),
+      linear-gradient(180deg,#fffdf2 0%, #fff7e0 45%, #fff0d6 100%);
+    background-attachment:fixed;}
+  header{padding:14px 18px; background:rgba(255,255,255,0.72);
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+    border-bottom:1px solid rgba(245,166,35,0.35);
+    display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:5;}
+  .logo{display:flex; align-items:center; gap:8px; margin:0; font-size:19px; font-weight:800; letter-spacing:.5px;}
+  .logo .mark{width:30px;height:30px;border-radius:10px;
+    background:linear-gradient(135deg,#ffd75e,#ffae33 55%,#ff8a3d);
+    display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:900;
+    box-shadow:0 4px 12px rgba(255,160,40,.5);}
+  .logo .tx{background:linear-gradient(90deg,#f59000,#ff7a2e);
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  header .home{font-size:14px; font-weight:700; color:var(--accent); background:none; border:none; padding:8px 10px;}
+  main{flex:1; padding:18px 16px 40px; max-width:560px; width:100%; margin:0 auto;}
+  .hidden{display:none !important;}
+  .card{background:var(--card); border:1px solid rgba(245,190,90,.35); border-radius:24px;
+    padding:20px; margin-bottom:16px; box-shadow:0 10px 30px rgba(245,166,35,.12), 0 2px 8px rgba(255,140,40,.07);}
+  .muted{color:var(--sub); font-size:13.5px; line-height:1.7;}
+  button{font-family:inherit; cursor:pointer;}
+  .btn{display:block; width:100%; padding:17px; border-radius:18px; border:none;
+    font-size:17px; font-weight:800; color:var(--btnink); margin-top:12px; letter-spacing:.5px;
+    background:linear-gradient(135deg,#ffe488 0%,#ffc83d 50%,#ffab1f 100%);
+    box-shadow:0 8px 20px rgba(255,170,40,.4); transition:transform .08s ease, box-shadow .2s;}
+  .btn:active{transform:translateY(2px) scale(.99); box-shadow:0 4px 12px rgba(255,170,40,.3);}
+  .btn.sec{background:#fff; color:var(--accent2); border:2px solid var(--accent3);
+    box-shadow:0 6px 16px rgba(255,170,40,.14);}
+  .btn.ghost{background:rgba(255,255,255,.6); color:var(--accent2); border:1.5px dashed #ffcf85; box-shadow:none;}
+  .list-row{display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:16px; background:var(--soft); border:1.5px solid #fbecc2; border-radius:18px; margin-bottom:11px;
+    transition:transform .08s;}
+  .list-row:active{transform:scale(.99);}
+  .list-row .info{flex:1; min-width:0;}
+  .list-row .name{font-weight:800; font-size:16px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .list-row .cnt{font-size:12px; color:var(--sub); margin-top:3px;}
+  .list-row.active{border-color:var(--accent); background:#fff6dd;
+    box-shadow:0 6px 18px rgba(255,170,40,.25);}
+  .pill{font-size:11px; padding:4px 10px; border-radius:999px; color:#6b4a00; font-weight:800;
+    background:linear-gradient(135deg,#ffd75e,#ff9f33); box-shadow:0 3px 8px rgba(255,160,40,.4);}
+  .iconbtn{background:none; border:none; color:#d9b66a; font-size:20px; padding:6px 8px;}
+  textarea{width:100%; min-height:180px; background:#fff; color:var(--txt);
+    border:2px solid var(--line); border-radius:16px; padding:13px; font-size:15px; line-height:1.7;
+    font-family:ui-monospace,Menlo,monospace;}
+  input[type=text]{width:100%; background:#fff; color:var(--txt); border:2.5px solid var(--accent3);
+    border-radius:16px; padding:17px; font-size:23px; text-align:center; letter-spacing:1px; font-weight:700;}
+  input[type=text]::placeholder{color:#e3b9cf; font-weight:500;}
+  input[type=text]:focus{outline:none; border-color:var(--accent);
+    box-shadow:0 0 0 4px rgba(245,166,35,.22);}
+  .label{font-size:13px; color:var(--accent2); font-weight:700; margin:14px 0 6px;}
+  .jp{font-size:32px; font-weight:900; text-align:center; margin:10px 0 4px; line-height:1.35; color:#5b4626;}
+  .hint{text-align:center; color:var(--accent2); font-size:18px; min-height:24px; letter-spacing:5px; font-weight:800;}
+  .progress{height:12px; background:#ffeec2; border-radius:999px; overflow:hidden; margin-bottom:8px;
+    box-shadow:inset 0 1px 3px rgba(255,170,40,.18);}
+  .progress > i{display:block; height:100%; width:0; border-radius:999px;
+    background:linear-gradient(90deg,#ffe07a,#ffae33 60%,#ff8a3d); transition:width .35s ease;}
+  .qmeta{display:flex; justify-content:space-between; font-size:13px; color:var(--sub); font-weight:700; margin-bottom:14px;}
+  .feedback{text-align:center; margin-top:16px; min-height:60px;}
+  .feedback .mark{font-size:44px; font-weight:900;}
+  .feedback .ans{font-size:21px; margin-top:4px; font-weight:800;}
+  .ok{color:var(--ok);} .ng{color:var(--ng);}
+  .result-big{font-size:40px; font-weight:900; text-align:center; line-height:1.3;
+    background:linear-gradient(90deg,#f59000,#ff7a2e);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  .result-sub{text-align:center; color:var(--sub); margin-top:8px; font-weight:600;}
+  .row2{display:flex; gap:10px;}
+  .row2 .btn{margin-top:10px;}
+  .wrongitem{display:flex; align-items:center; justify-content:space-between; padding:12px 6px;
+    border-bottom:1.5px solid #fbecc2; font-size:15px;}
+  .wrongitem:last-child{border-bottom:none;}
+  .wrongitem .en{font-weight:800; color:var(--accent2);}
+  .speakbtn{background:#fff;border:1.5px solid var(--accent3);color:var(--accent2);border-radius:12px;
+    padding:7px 13px;font-size:14px;font-weight:700;}
+  .toast{position:fixed; bottom:26px; left:50%; transform:translateX(-50%);
+    background:#fff; border:1.5px solid var(--accent3); color:var(--accent2); padding:12px 20px;
+    border-radius:16px; font-size:14px; font-weight:700; z-index:50; opacity:0; transition:opacity .2s;
+    box-shadow:0 8px 24px rgba(245,166,35,.28);}
+  .toast.show{opacity:1;}
+  /* ふわっと登場 */
+  @keyframes pop{0%{transform:scale(.7);opacity:0}60%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+  .feedback .mark{animation:pop .35s ease;}
+  /* クリア演出 */
+  #confetti{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:80;}
+  @keyframes celebPop{0%{transform:scale(0) rotate(-12deg);opacity:0}
+    55%{transform:scale(1.25) rotate(6deg);opacity:1}80%{transform:scale(.95) rotate(-2deg)}100%{transform:scale(1) rotate(0)}}
+  @keyframes shine{0%,100%{filter:drop-shadow(0 0 0 rgba(255,200,60,0))}50%{filter:drop-shadow(0 0 14px rgba(255,180,40,.9))}}
+  .celebEmoji{font-size:46px; line-height:1.1; margin-bottom:2px; animation:celebPop .6s cubic-bezier(.2,1.3,.4,1) both, shine 1.4s ease 0.3s infinite;}
+  #resScore.win{animation:celebPop .55s cubic-bezier(.2,1.3,.4,1) both;}
+</style>
 </head>
 <body>
+<header>
+  <h1 class="logo"><span class="mark">M</span><span class="tx">MACS英単語</span></h1>
+  <button class="home" onclick="goHome()">ホーム</button>
+</header>
+<main>
 
-<div class="container">
-    <h1>📚 えいたんごマスター</h1>
-    
-    <div class="mode-select">
-        <button class="mode-btn active" onclick="switchMode('card')">カード（あんき）</button>
-        <button class="mode-btn" onclick="switchMode('quiz')">4たくクイズ</button>
+  <!-- ホーム画面 -->
+  <section id="screen-home">
+    <div class="card" style="text-align:center;background:linear-gradient(135deg,#fff,#fff7e0);">
+      <div style="font-size:34px;line-height:1;margin-bottom:6px;">🌟📖</div>
+      <div style="font-size:18px;font-weight:800;color:#5b4626;">今日もコツコツ、たんごチャレンジ！</div>
+      <div class="muted" style="margin-top:6px;">単語帳をえらんでスタート。日本語を見て英語をタイピング、発音もながれるよ♪</div>
     </div>
+    <div id="listContainer"></div>
+    <button class="btn ghost" onclick="showImport()">＋ 新しい単語帳をついか / はりつけ</button>
+    <button class="btn" onclick="startTest()">テストをはじめる ▶</button>
+    <button class="btn ghost" style="margin-top:10px;" onclick="speak('Hello, this is a test.')">🔊 はつおんテスト</button>
+  </section>
 
-    <div id="game-zone">
-        <div class="progress-bar"><div id="progress" class="progress-fill"></div></div>
-        
-        <!-- 単語カードモード -->
-        <div id="card-mode">
-            <div class="flashcard" onclick="flipCard()">
-                <div id="card-front" class="word-eng">word</div>
-                <div id="card-back" class="word-jpn hidden">意味</div>
-                <div id="card-sentence" class="sentence-box hidden">
-                    <p id="sent-eng" style="font-weight: bold;"></p>
-                    <p id="sent-jpn"></p>
-                </div>
-            </div>
-            <p style="text-align:center; color:#999; font-size:12px; margin-top:-10px;">★カードをタッチすると答えが出るよ</p>
-            <div class="nav-btns">
-                <button class="btn btn-sub" onclick="prevQuestion()">まえへ</button>
-                <button class="btn btn-main" onclick="nextQuestion()">つぎへ</button>
-            </div>
-        </div>
-
-        <!-- クイズモード -->
-        <div id="quiz-mode" class="hidden">
-            <div id="quiz-q" class="quiz-word">word</div>
-            <div class="options" id="quiz-options"></div>
-            <div id="quiz-feedback" class="sentence-box hidden" style="border-top:none; background:#f9f9f9; padding:10px; border-radius:8px;">
-                <p id="quiz-sent-eng" style="font-weight: bold; color:var(--primary);"></p>
-                <p id="quiz-sent-jpn"></p>
-            </div>
-            <div class="nav-btns">
-                <div></div>
-                <button id="quiz-next-btn" class="btn btn-main hidden" onclick="nextQuestion()">つぎへ</button>
-            </div>
-        </div>
+  <!-- パート選択画面 -->
+  <section id="screen-parts" class="hidden">
+    <div class="card" style="text-align:center;background:linear-gradient(135deg,#fff,#fff7e0);">
+      <div style="font-size:30px;line-height:1;margin-bottom:4px;">⭐</div>
+      <div style="font-size:17px;font-weight:800;color:#5b4626;" id="partsTitle">パートをえらんでね</div>
+      <div class="muted" style="margin-top:6px;">10語ずつのミニテスト。1つクリアでスターGET！</div>
+      <div class="progress" style="margin-top:12px;"><i id="partsBar"></i></div>
+      <div class="muted" id="partsProg" style="margin-top:2px;"></div>
     </div>
+    <div id="partsContainer"></div>
+    <button class="btn ghost" id="fullRunBtn" onclick="startFull()">ぜんぶ通しでやる</button>
+    <button class="btn ghost" onclick="goHome()">ホームにもどる</button>
+  </section>
 
-    <!-- 結果画面 -->
-    <div id="result-zone" class="result-screen hidden">
-        <h2>おつかれさまでした！🎉</h2>
-        <div class="score"><span id="correct-count">0</span> / <span id="total-count">0</span></div>
-        <p id="result-msg">よくがんばったね！</p>
-        <button class="btn btn-main" onclick="restartGame(false)">もういちど（最初から）</button>
-        <button id="retry-wrong-btn" class="btn btn-sub" onclick="restartGame(true)" style="margin-top:10px; width:100%;">まちがえた問題だけやる</button>
+  <!-- インポート画面 -->
+  <section id="screen-import" class="hidden">
+    <div class="card">
+      <div class="label">単語帳の名前</div>
+      <input type="text" id="impName" placeholder="例：6月8日テスト範囲" style="font-size:18px;text-align:left;letter-spacing:0;">
+      <div class="label">単語リスト（1行に1組）</div>
+      <div class="muted" style="margin-bottom:8px;">
+        「英語 , 日本語」の形で1行ずつ貼り付けてください。カンマの代わりにタブでもOK。<br>
+        例：<br>apple , りんご<br>run , 走る<br>※毎週この欄に、私（Claude）が作る貼り付け用テキストを入れるだけで更新できます。
+      </div>
+      <textarea id="impText" placeholder="apple , りんご&#10;beautiful , 美しい&#10;decide , 決める"></textarea>
+      <button class="btn" onclick="saveImport()">保存する</button>
+      <button class="btn sec" onclick="goHome()">キャンセル</button>
     </div>
-</div>
+  </section>
+
+  <!-- テスト画面 -->
+  <section id="screen-quiz" class="hidden">
+    <div class="progress"><i id="bar"></i></div>
+    <div class="qmeta"><span id="qcount"></span><span id="qscore"></span></div>
+    <div class="card">
+      <div class="label" style="text-align:center;">この日本語を英語で：</div>
+      <div class="jp" id="qjp">—</div>
+      <div class="hint" id="qhint"></div>
+      <form id="answerForm" onsubmit="return submitAnswer(event)">
+        <input type="text" id="answer" autocapitalize="off" autocorrect="off"
+          autocomplete="off" spellcheck="false" inputmode="latin" placeholder="英語を入力">
+        <button class="btn" type="submit" id="checkBtn">答え合わせ</button>
+      </form>
+      <div class="feedback" id="feedback"></div>
+      <button class="btn sec hidden" id="nextBtn" onclick="nextQuestion()">次へ ▶</button>
+    </div>
+    <button class="btn ghost" onclick="goHome()">テストをやめる</button>
+  </section>
+
+  <!-- 結果画面 -->
+  <section id="screen-result" class="hidden">
+    <div class="card" style="text-align:center;">
+      <div class="celebEmoji" id="celebEmoji"></div>
+      <div class="result-big" id="resScore">—</div>
+      <div class="result-sub" id="resSub"></div>
+    </div>
+    <div class="card" id="wrongCard">
+      <div class="label">間違えた単語（タップで発音）</div>
+      <div id="wrongList"></div>
+    </div>
+    <div id="resultActions"></div>
+  </section>
+
+</main>
+<canvas id="confetti"></canvas>
+<div class="toast" id="toast"></div>
 
 <script>
-// 画像（IMG_7229, IMG_7230, IMG_7231）から全39単語を抽出したデータ
-const wordData = [
-    // IMG_7231 (名詞⑤)
-    {eng: "dollar", jpn: "ドル（貨幣単位）", sEng: "The notebook is two dollars.", sJpn: "そのノートは2ドルです。"},
-    {eng: "door", jpn: "ドア、戸", sEng: "Please open the door.", sJpn: "ドアを開けてください。"},
-    {eng: "wall", jpn: "かべ、へい", sEng: "Look at the picture on the wall.", sJpn: "かべにかかっている写真を見なさい。"},
-    {eng: "bag", jpn: "バッグ、かばん、袋", sEng: "Which bag is yours?", sJpn: "どちらのバッグがあなたのものですか。"},
-    {eng: "box", jpn: "箱", sEng: "What is in that box?", sJpn: "あの箱の中には何が入っていますか。"},
-    {eng: "camera", jpn: "カメラ", sEng: "Is this your new camera?", sJpn: "これはあなたの新しいカメラですか。"},
-    {eng: "watch", jpn: "腕時計", sEng: "Your watch is nice.", sJpn: "あなたの腕時計はすてきですね。"},
-    {eng: "bath", jpn: "入浴", sEng: "What time do you usually take a bath?", sJpn: "あなたはふつう何時にお風呂に入りますか。"},
-    {eng: "dish", jpn: "皿、料理", sEng: "I wash the dishes every day.", sJpn: "私は毎日、食器を洗います。"},
-    {eng: "piano", jpn: "ピアノ", sEng: "I practice the piano on Saturdays.", sJpn: "私は土曜日にピアノを練習します。"},
-    {eng: "card", jpn: "カード、はがき", sEng: "I write Christmas cards to my friends.", sJpn: "私は友達にクリスマスカードを書きます。"},
-    {eng: "classmate", jpn: "クラスメイト、同級生", sEng: "Tom and I are classmates.", sJpn: "トムと私はクラスメイトです。"},
-    {eng: "class", jpn: "授業、クラス", sEng: "We have an English class today.", sJpn: "今日、私たちは英語の授業があります。"},
+/* ============ データ管理（localStorageに保存） ============ */
+const LS_KEY = "eitango_lists_v1";
+const LS_ACTIVE = "eitango_active_v1";
 
-    // IMG_7229 (名詞⑥)
-    {eng: "club", jpn: "クラブ、部", sEng: "He wants to join the art club.", sJpn: "彼は美術部に入りたがっています。"},
-    {eng: "friend", jpn: "友達", sEng: "I often talk with my friends.", sJpn: "私はよく私の友達と話します。"},
-    {eng: "school", jpn: "学校", sEng: "I come to school at eight.", sJpn: "私は8時に学校に来ます。"},
-    {eng: "classroom", jpn: "教室", sEng: "Where is your classroom?", sJpn: "あなたの教室はどこですか。"},
-    {eng: "homework", jpn: "宿題", sEng: "I usually do my homework before dinner.", sJpn: "私はふつう夕食の前に宿題をします。"},
-    {eng: "subject", jpn: "教科、科目", sEng: "What subjects do you like?", sJpn: "あなたは何の教科が好きですか。"},
-    {eng: "art", jpn: "芸術、美術", sEng: "My brother studies art in London.", sJpn: "私の兄[弟]はロンドンで芸術を勉強しています。"},
-    {eng: "player", jpn: "選手、競技者", sEng: "She is a good basketball player.", sJpn: "彼女は上手なバスケットボール選手です。"},
-    {eng: "ball", jpn: "ボール、球", sEng: "My dog can catch a ball.", sJpn: "私のイヌはボールをとることができます。"},
-    {eng: "game", jpn: "試合、（娯楽の）ゲーム", sEng: "He likes watching soccer games.", sJpn: "彼はサッカーの試合を見るのが好きです。"},
-    {eng: "team", jpn: "チーム、組", sEng: "Are you on the baseball team?", sJpn: "あなたは野球部に入っていますか。"},
-    {eng: "special", jpn: "おすすめ、特別のもの", sEng: "What is today's special?", sJpn: "本日のおすすめは何ですか。"},
-    {eng: "child", jpn: "子ども", sEng: "Do you know the child?", sJpn: "あなたはその子どもを知っていますか。"},
+function loadLists(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY)) || null; }catch(e){ return null; }
+}
+function saveLists(lists){ localStorage.setItem(LS_KEY, JSON.stringify(lists)); }
+function getActiveId(){ return localStorage.getItem(LS_ACTIVE); }
+function setActiveId(id){ localStorage.setItem(LS_ACTIVE, id); }
 
-    // IMG_7230 (名詞⑦)
-    {eng: "life", jpn: "生活、暮らし、一生、生命", sEng: "How is your life in Australia?", sJpn: "あなたのオーストラリアでの生活はどうですか。"},
-    {eng: "people", jpn: "人々、国民", sEng: "Are these people from America?", sJpn: "これらの人々はアメリカ出身ですか。"},
-    {eng: "student", jpn: "学生、生徒", sEng: "We are students at this school.", sJpn: "私たちはこの学校の生徒です。"},
-    {eng: "parent", jpn: "親、（複数形で）両親", sEng: "I love my parents.", sJpn: "私は両親を愛しています。"},
-    {eng: "Mr.", jpn: "（男性に対して）〜さん、〜先生", sEng: "We sometimes help Mr. Green.", sJpn: "私たちはときどきグリーン先生の手伝いをします。"},
-    {eng: "Ms.", jpn: "（女性に対して）〜さん、〜先生", sEng: "That woman is dashed Ms. White.", sJpn: "あの女の人はホワイト先生です。"},
-    {eng: "dad", jpn: "お父さん", sEng: "Please help me, Dad.", sJpn: "手伝って、お父さん。"},
-    {eng: "mom", jpn: "お母さん", sEng: "I'm home, Mom.", sJpn: "ただいま、お母さん。"},
-    {eng: "man", jpn: "男性、男の人", sEng: "The man is our teacher.", sJpn: "その男性は私たちの先生です。"},
-    {eng: "woman", jpn: "女性、女の人", sEng: "Look at that beautiful woman.", sJpn: "あちらの美しい女性を見て。"},
-    {eng: "boy", jpn: "少年、男の子", sEng: "That boy is John.", sJpn: "あの男の子はジョンです。"},
-    {eng: "girl", jpn: "少女、女の子", sEng: "Who is this girl?", sJpn: "この女の子はだれですか。"},
-    {eng: "person", jpn: "人、個人", sEng: "That woman is an important person for us.", sJpn: "あの女性は私たちにとって重要な人です。"}
-];
-
-let currentWords = [...wordData];
-let wrongWords = [];
-let currentIndex = 0;
-let currentMode = 'card'; // 'card' or 'quiz'
-let isFlipped = false;
-let quizScore = 0;
-let hasAnsweredQuiz = false;
-
-// シャッフル関数
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
+// 初回サンプル
+function seedIfEmpty(){
+  let lists = loadLists();
+  if(!lists){
+    lists = [{
+      id: "n0457_0495",
+      name: "中1 名詞 0457〜0495",
+      words: [
+        {en:"dollar", jp:"ドル"},
+        {en:"door", jp:"ドア・戸"},
+        {en:"wall", jp:"かべ・へい"},
+        {en:"bag", jp:"バッグ・かばん"},
+        {en:"box", jp:"箱"},
+        {en:"camera", jp:"カメラ"},
+        {en:"watch", jp:"腕時計"},
+        {en:"bath", jp:"入浴"},
+        {en:"dish", jp:"皿・料理"},
+        {en:"piano", jp:"ピアノ"},
+        {en:"card", jp:"カード・はがき"},
+        {en:"classmate", jp:"クラスメイト・同級生"},
+        {en:"class", jp:"クラス"},
+        {en:"club", jp:"クラブ・部"},
+        {en:"friend", jp:"友達"},
+        {en:"school", jp:"学校"},
+        {en:"classroom", jp:"教室"},
+        {en:"homework", jp:"宿題"},
+        {en:"subject", jp:"教科・科目"},
+        {en:"art", jp:"芸術・美術"},
+        {en:"player", jp:"選手"},
+        {en:"ball", jp:"ボール・玉"},
+        {en:"game", jp:"試合・ゲーム"},
+        {en:"team", jp:"チーム・組"},
+        {en:"special", jp:"特別な"},
+        {en:"child", jp:"子ども"},
+        {en:"life", jp:"生活・一生"},
+        {en:"people", jp:"人々・国民"},
+        {en:"student", jp:"学生・生徒"},
+        {en:"parent", jp:"親"},
+        {en:"Mr.", jp:"（男性に）〜さん・先生"},
+        {en:"Ms.", jp:"（女性に）〜さん・先生"},
+        {en:"dad", jp:"お父さん"},
+        {en:"mom", jp:"お母さん"},
+        {en:"man", jp:"男性・男の人"},
+        {en:"woman", jp:"女性・女の人"},
+        {en:"boy", jp:"少年・男の子"},
+        {en:"girl", jp:"少女・女の子"},
+        {en:"person", jp:"人・個人"}
+      ]
+    },{
+      id: "sample",
+      name: "サンプル（中1・基本）",
+      words: [
+        {en:"apple", jp:"りんご"},
+        {en:"school", jp:"学校"},
+        {en:"teacher", jp:"先生"},
+        {en:"beautiful", jp:"美しい"},
+        {en:"run", jp:"走る"},
+        {en:"study", jp:"勉強する"},
+        {en:"family", jp:"家族"},
+        {en:"morning", jp:"朝"},
+        {en:"friend", jp:"友達"},
+        {en:"every day", jp:"毎日"}
+      ]
+    }];
+    saveLists(lists);
+    setActiveId("n0457_0495");
+  }
+  return lists;
 }
 
-// モード切り替え
-function switchMode(mode) {
-    currentMode = mode;
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    if(mode === 'card') {
-        document.querySelectorAll('.mode-btn')[0].classList.add('active');
-        document.getElementById('card-mode').classList.remove('hidden');
-        document.getElementById('quiz-mode').classList.add('hidden');
-    } else {
-        document.querySelectorAll('.mode-btn')[1].classList.add('active');
-        document.getElementById('card-mode').classList.add('hidden');
-        document.getElementById('quiz-mode').classList.remove('hidden');
-    }
-    restartGame(false);
+/* ============ 画面切り替え ============ */
+const screens = ["home","parts","import","quiz","result"];
+function show(name){
+  screens.forEach(s=>{
+    document.getElementById("screen-"+s).classList.toggle("hidden", s!==name);
+  });
+  window.scrollTo(0,0);
+}
+function goHome(){ stopSpeak(); renderHome(); show("home"); }
+function showImport(){
+  document.getElementById("impName").value = "";
+  document.getElementById("impText").value = "";
+  show("import");
 }
 
-// ゲーム初期化
-function restartGame(onlyWrong = false) {
-    if (onlyWrong && wrongWords.length > 0) {
-        currentWords = [...wrongWords];
-    } else {
-        currentWords = [...wordData];
-        shuffle(currentWords);
-    }
-    wrongWords = [];
-    currentIndex = 0;
-    quizScore = 0;
-    
-    document.getElementById('game-zone').classList.remove('hidden');
-    document.getElementById('result-zone').classList.add('hidden');
-    
-    showCurrentQuestion();
+/* ============ ホーム描画 ============ */
+function renderHome(){
+  const lists = loadLists() || [];
+  const active = getActiveId();
+  const c = document.getElementById("listContainer");
+  c.innerHTML = "";
+  if(lists.length===0){
+    c.innerHTML = '<div class="card muted">単語帳がありません。「＋ 新しい単語帳を追加」から作成してください。</div>';
+    return;
+  }
+  lists.forEach(l=>{
+    const row = document.createElement("div");
+    row.className = "list-row" + (l.id===active ? " active":"");
+    row.innerHTML =
+      '<div class="info" onclick="chooseList(\''+l.id+'\')">'+
+        '<div class="name">'+escapeHtml(l.name)+'</div>'+
+        '<div class="cnt">'+l.words.length+'語'+(l.id===active?'':'　— タップで選択')+'</div>'+
+      '</div>'+
+      (l.id===active?'<span class="pill">選択中</span>':'')+
+      '<button class="iconbtn" title="削除" onclick="deleteList(\''+l.id+'\')">🗑</button>';
+    c.appendChild(row);
+  });
+}
+function chooseList(id){ setActiveId(id); renderHome(); toast("「"+listName(id)+"」を選択しました"); }
+function listName(id){ const l=(loadLists()||[]).find(x=>x.id===id); return l?l.name:""; }
+function deleteList(id){
+  if(!confirm("この単語帳を削除しますか？")) return;
+  let lists = (loadLists()||[]).filter(l=>l.id!==id);
+  saveLists(lists);
+  if(getActiveId()===id) setActiveId(lists[0]?lists[0].id:"");
+  renderHome();
 }
 
-// 問題表示
-function showCurrentQuestion() {
-    if(currentWords.length === 0) return;
-    
-    // 進捗バー
-    const progressPercent = (currentIndex / currentWords.length) * 100;
-    document.getElementById('progress').style.width = `${progressPercent}%`;
-
-    const current = currentWords[currentIndex];
-
-    if(currentMode === 'card') {
-        // カードモードの表示
-        isFlipped = false;
-        document.getElementById('card-front').innerText = current.eng;
-        document.getElementById('card-back').innerText = current.jpn;
-        document.getElementById('sent-eng').innerText = current.sEng;
-        document.getElementById('sent-jpn').innerText = current.sJpn;
-        
-        document.getElementById('card-back').classList.add('hidden');
-        document.getElementById('card-sentence').classList.add('hidden');
-    } else {
-        // クイズモードの表示
-        hasAnsweredQuiz = false;
-        document.getElementById('quiz-q').innerText = current.eng;
-        document.getElementById('quiz-feedback').classList.add('hidden');
-        document.getElementById('quiz-next-btn').classList.add('hidden');
-
-        // 4択の選択肢作成
-        let choices = [current.jpn];
-        let allJpn = wordData.map(w => w.jpn).filter(j => j !== current.jpn);
-        shuffle(allJpn);
-        for(let i=0; i<3; i++) {
-            if(allJpn[i]) choices.push(allJpn[i]);
-        }
-        shuffle(choices);
-
-        const optionsContainer = document.getElementById('quiz-options');
-        optionsContainer.innerHTML = '';
-        choices.forEach(choice => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = choice;
-            btn.onclick = () => checkQuizAnswer(btn, choice, current.jpn);
-            optionsContainer.appendChild(btn);
-        });
-    }
+/* ============ インポート保存 ============ */
+function saveImport(){
+  const name = document.getElementById("impName").value.trim() || ("単語帳 "+new Date().toLocaleDateString("ja-JP"));
+  const raw = document.getElementById("impText").value;
+  const words = parseWords(raw);
+  if(words.length===0){ toast("単語を読み取れませんでした。形式を確認してください"); return; }
+  let lists = loadLists() || [];
+  const id = "list_" + Date.now();
+  lists.unshift({id, name, words});
+  saveLists(lists);
+  setActiveId(id);
+  toast(words.length+"語を保存しました");
+  goHome();
+}
+function parseWords(raw){
+  const out = [];
+  raw.split(/\r?\n/).forEach(line=>{
+    line = line.trim();
+    if(!line) return;
+    // カンマ / タブ / 全角カンマ で分割
+    let parts = line.split(/\t|,|，/);
+    if(parts.length < 2) return;
+    const en = parts[0].trim();
+    const jp = parts.slice(1).join(",").trim();
+    if(en && jp) out.push({en, jp});
+  });
+  return out;
 }
 
-// カードをめくる
-function flipCard() {
-    if(currentMode !== 'card') return;
-    isFlipped = !isFlipped;
-    if(isFlipped) {
-        document.getElementById('card-back').classList.remove('hidden');
-        document.getElementById('card-sentence').classList.remove('hidden');
-    } else {
-        document.getElementById('card-back').classList.add('hidden');
-        document.getElementById('card-sentence').classList.add('hidden');
-    }
+/* ============ テスト ============
+   ルール：
+   - 一発で正解 → マスター（出題から外れる）
+   - 間違い → 正解の発音＋スペル表示。正しいスペルを入力するまで次へ進めない。
+            さらにその単語は後でもう一度出題（正解するまで繰り返す）
+*/
+let queue = [];        // まだマスターしていない単語（先頭から出題）
+let totalUnique = 0;   // 出題数
+let mastered = 0;      // マスター数
+let missed = [];       // 一度でも間違えた単語（復習用）
+let phase = "answer";  // answer | done | retype
+let mode = "full";     // full | part | review
+let partIndex = -1;    // パート番号（0始まり）
+let partCount = 0;     // パート総数
+const PART_SIZE = 10;  // 1回のテストは最大10語
+
+function activeList(){ return (loadLists()||[]).find(l=>l.id===getActiveId()); }
+function chunksOf(words){
+  const c=[]; for(let i=0;i<words.length;i+=PART_SIZE) c.push(words.slice(i,i+PART_SIZE)); return c;
+}
+/* クリア状況の保存 */
+function doneKey(){ return "eitango_done_"+getActiveId(); }
+function loadDone(){ try{ return JSON.parse(localStorage.getItem(doneKey()))||{}; }catch(e){ return {}; } }
+function saveDone(o){ localStorage.setItem(doneKey(), JSON.stringify(o)); }
+
+/* ホームの「テストをはじめる」 */
+function startTest(){
+  const list = activeList();
+  if(!list || list.words.length===0){ toast("単語帳を選んでください"); return; }
+  if(list.words.length <= PART_SIZE){ startFull(); }
+  else { showParts(); }
 }
 
-// クイズの答え合わせ
-function checkQuizAnswer(selectedBtn, chosen, correct) {
-    if(hasAnsweredQuiz) return;
-    hasAnsweredQuiz = true;
-
-    const current = currentWords[currentIndex];
-    document.getElementById('quiz-sent-eng').innerText = current.sEng;
-    document.getElementById('quiz-sent-jpn').innerText = current.sJpn;
-    document.getElementById('quiz-feedback').classList.remove('hidden');
-    document.getElementById('quiz-next-btn').classList.remove('hidden');
-
-    if(chosen === correct) {
-        selectedBtn.classList.add('correct');
-        quizScore++;
-    } else {
-        selectedBtn.classList.add('wrong');
-        wrongWords.push(current);
-        // 正解のボタンも光らせる
-        const buttons = document.querySelectorAll('.option-btn');
-        buttons.forEach(b => {
-            if(b.innerText === correct) b.classList.add('correct');
-        });
-    }
+/* パート選択画面 */
+function showParts(){
+  const list = activeList();
+  if(!list){ toast("単語帳を選んでください"); return; }
+  const chunks = chunksOf(list.words);
+  partCount = chunks.length;
+  const done = loadDone();
+  let cleared = 0;
+  const c = document.getElementById("partsContainer");
+  c.innerHTML = "";
+  chunks.forEach((ch,i)=>{
+    const st = done[i] || {};
+    if(st.done) cleared++;
+    const from = i*PART_SIZE+1, to = i*PART_SIZE+ch.length;
+    const badge = st.star ? '<span class="pill">⭐ クリア</span>'
+                : st.done ? '<span class="pill" style="background:linear-gradient(135deg,#ffe07a,#ffc24d);">✅ クリア</span>'
+                : '<span class="pill" style="background:#fff3cf;color:#9a7a1a;box-shadow:none;">みちょうせん</span>';
+    const row = document.createElement("div");
+    row.className = "list-row";
+    row.innerHTML =
+      '<div class="info" onclick="startPart('+i+')">'+
+        '<div class="name">パート '+(i+1)+'</div>'+
+        '<div class="cnt">'+from+'〜'+to+'語め（'+ch.length+'語）</div>'+
+      '</div>'+badge;
+    c.appendChild(row);
+  });
+  document.getElementById("partsTitle").textContent = list.name;
+  document.getElementById("partsBar").style.width = (cleared/partCount*100)+"%";
+  document.getElementById("partsProg").textContent = cleared+" / "+partCount+" パート クリア"+(cleared===partCount?"　ぜんぶ達成！🎉":"");
+  show("parts");
 }
 
-// 次へ / 前へ
-function nextQuestion() {
-    currentIndex++;
-    if(currentIndex >= currentWords.length) {
-        showResult();
-    } else {
-        showCurrentQuestion();
+function startPart(i){
+  const list = activeList(); if(!list) return;
+  const chunks = chunksOf(list.words);
+  mode="part"; partIndex=i; partCount=chunks.length;
+  beginQueue(chunks[i].slice());
+}
+function startFull(){
+  const list = activeList(); if(!list) return;
+  mode="full"; partIndex=-1; partCount=0;
+  beginQueue(list.words.slice());
+}
+function retryWrong(){
+  if(missed.length===0){ toast("間違えた単語はありません"); return; }
+  const again = missed.slice();
+  mode="review";
+  beginQueue(again);
+}
+function beginQueue(words){
+  words.forEach(w=>{ w._missed=false; });
+  queue = shuffle(words);
+  totalUnique = queue.length; mastered = 0; missed = [];
+  unlockSpeech();
+  show("quiz");
+  renderQuestion();
+}
+function renderQuestion(){
+  phase = "answer";
+  const q = queue[0];
+  document.getElementById("qjp").textContent = q.jp;
+  document.getElementById("qhint").textContent = "";
+  document.getElementById("feedback").innerHTML = "";
+  const inp = document.getElementById("answer");
+  inp.value = ""; inp.disabled = false; inp.readOnly = false; inp.placeholder = "英語を入力";
+  const btn = document.getElementById("checkBtn");
+  btn.textContent = "答え合わせ"; btn.classList.remove("hidden");
+  document.getElementById("nextBtn").classList.add("hidden");
+  document.getElementById("qcount").textContent = "のこり "+queue.length+"語";
+  document.getElementById("qscore").textContent = "マスター "+mastered+" / "+totalUnique;
+  document.getElementById("bar").style.width = (mastered/totalUnique*100)+"%";
+  setTimeout(()=>inp.focus(), 50);
+}
+function submitAnswer(e){
+  e.preventDefault();
+  const q = queue[0];
+  const inp = document.getElementById("answer");
+  const fb = document.getElementById("feedback");
+  const btn = document.getElementById("checkBtn");
+  const userRaw = inp.value;
+
+  if(phase === "answer"){
+    if(checkMatch(userRaw, q.en)){
+      // 一発正解 → マスター
+      mastered++;
+      speak(q.en);
+      fb.innerHTML = '<div class="mark ok">○ 正解！</div><div class="ans ok">'+escapeHtml(q.en)+'</div>'+
+        '<div class="muted" style="margin-top:6px;">'+(queue.length? "Enterキーでつぎへ ▶" : "Enterキーで結果へ ▶")+'</div>';
+      queue.shift();
+      inp.readOnly = true;   // 文字は残すが編集不可。Enterで次へ進める
+      phase = "done";
+      btn.textContent = queue.length ? "次へ ▶" : "結果を見る ▶";
+      document.getElementById("qscore").textContent = "マスター "+mastered+" / "+totalUnique;
+      document.getElementById("bar").style.width = (mastered/totalUnique*100)+"%";
+      setTimeout(()=>inp.focus(), 30);  // フォーカス維持→Enterで次へ
+    }else{
+      // 不正解 → 正しいスペルを入力させる
+      if(!q._missed){ q._missed = true; missed.push(q); }
+      speak(q.en);
+      document.getElementById("qhint").textContent = q.en; // コピー用に表示
+      fb.innerHTML = '<div class="mark ng">× ざんねん</div>'+
+        '<div class="muted">あなた：'+escapeHtml(userRaw||"（空欄）")+'</div>'+
+        '<div class="ans ng">正解：'+escapeHtml(q.en)+'</div>'+
+        '<div class="muted" style="margin-top:6px;">↑ 正しいスペルを入力すると次へ進めます</div>';
+      phase = "retype";
+      inp.value = ""; inp.placeholder = "正しいスペルを入力";
+      btn.textContent = "次へ ▶";
+      setTimeout(()=>inp.focus(), 50);
     }
+    return false;
+  }
+
+  if(phase === "retype"){
+    if(checkMatch(userRaw, q.en)){
+      // 正しく打てた → この単語は後ろへ回して再出題
+      queue.push(queue.shift());
+      renderQuestion();
+    }else{
+      // まだ違う → 進ませない
+      inp.value = "";
+      document.getElementById("qhint").textContent = q.en;
+      const m = fb.querySelector(".muted:last-child");
+      if(m) m.textContent = "もう一度：正しいスペルを入力してください";
+      setTimeout(()=>inp.focus(), 50);
+    }
+    return false;
+  }
+
+  if(phase === "done"){
+    if(queue.length === 0){ showResult(); }
+    else { renderQuestion(); }
+    return false;
+  }
+  return false;
+}
+function showResult(){
+  stopSpeak();
+  document.getElementById("bar").style.width = "100%";
+  const noMiss = missed.length===0;
+
+  // パートのクリア状況を保存（達成感）
+  let allCleared = false;
+  if(mode==="part"){
+    const done = loadDone();
+    const prev = done[partIndex] || {};
+    done[partIndex] = { done:true, star: noMiss ? true : (prev.star||false) };
+    saveDone(done);
+    let cleared=0; for(let i=0;i<partCount;i++){ if(done[i] && done[i].done) cleared++; }
+    allCleared = (cleared===partCount);
+  }
+
+  // 演出の強さ：3=全パート制覇 / 2=ノーミス / 1=通常
+  let power = 1;
+  if(allCleared) power = 3;
+  else if(noMiss) power = 2;
+  if(mode==="review") power = noMiss ? 2 : 1;
+
+  // 見出し＆絵文字
+  let head, emoji;
+  if(allCleared){ head = "ぜんぶ制覇！🏆"; emoji = "🎉🏆🎉"; }
+  else if(mode==="part"){ head = "パート "+(partIndex+1)+" クリア！"+(noMiss?" ⭐":""); emoji = noMiss?"⭐🎉⭐":"🎉"; }
+  else if(mode==="review"){ head = "ふくしゅう かんりょう！"; emoji = noMiss?"✨🎉✨":"💪"; }
+  else { head = "全 "+totalUnique+" 語クリア！"+(noMiss?" ⭐":""); emoji = noMiss?"⭐🎉⭐":"🎉"; }
+  const resEl = document.getElementById("resScore");
+  resEl.textContent = head;
+  resEl.classList.remove("win"); void resEl.offsetWidth; resEl.classList.add("win");
+  document.getElementById("celebEmoji").textContent = emoji;
+
+  // 紙吹雪＆効果音！
+  celebrate(power);
+
+  let msg;
+  if(noMiss) msg = "ノーミス！すばらしい🎉";
+  else msg = "にがてな単語 "+missed.length+" 語をもう一度ふくしゅうしよう。";
+  document.getElementById("resSub").textContent = msg;
+
+  // 間違いリスト
+  const wc = document.getElementById("wrongCard");
+  const wl = document.getElementById("wrongList");
+  if(noMiss){
+    wc.classList.add("hidden");
+  }else{
+    wc.classList.remove("hidden");
+    wl.innerHTML = "";
+    missed.forEach(q=>{
+      const d = document.createElement("div");
+      d.className = "wrongitem";
+      d.innerHTML = '<span><span class="en">'+escapeHtml(q.en)+'</span>　<span class="muted">'+escapeHtml(q.jp)+'</span></span>'+
+        '<button class="speakbtn" onclick="speak(\''+q.en.replace(/'/g,"\\'")+'\')">🔊 発音</button>';
+      wl.appendChild(d);
+    });
+  }
+
+  // ボタン（状況に応じて出し分け）
+  const acts = document.getElementById("resultActions");
+  acts.innerHTML = "";
+  const add = (label,cls,fn)=>{
+    const b=document.createElement("button"); b.className="btn "+cls; b.textContent=label;
+    b.onclick=fn; acts.appendChild(b);
+  };
+  if(!noMiss) add("にがてな単語だけ復習 ▶","",retryWrong);
+  if(mode==="part"){
+    if(partIndex < partCount-1) add("つぎのパートへ ▶", noMiss?"":"sec", ()=>startPart(partIndex+1));
+    add("このパートをもう一度","sec",()=>startPart(partIndex));
+    add("パートをえらぶ","ghost",showParts);
+  }else if(mode==="review"){
+    if(partCount>0) add("パートをえらぶ","sec",showParts);
+    else add("もう一度","sec",startFull);
+  }else{
+    add("もう一度","sec",startFull);
+  }
+  add("ホームにもどる","ghost",goHome);
+
+  show("result");
 }
 
-function prevQuestion() {
-    if(currentIndex > 0) {
-        currentIndex--;
-        showCurrentQuestion();
-    }
+/* 答え合わせ：大文字小文字・前後空白・連続空白を無視。「/」で複数正解可 */
+function checkMatch(user, correct){
+  const norm = s => s.toLowerCase().trim().replace(/\s+/g," ").replace(/[.．。]/g,"");
+  const u = norm(user);
+  if(!u) return false;
+  return correct.split("/").map(norm).includes(u);
 }
 
-// 結果発表
-function showResult() {
-    document.getElementById('game-zone').classList.add('hidden');
-    document.getElementById('result-zone').classList.remove('hidden');
+/* ============ 発音（クリア音声固定） ============ */
+const voiceMode = "online";   // クリア音声のみ（端末音声は自動フォールバックのみ）
+let voiceName = "";
+let rate = 0.9;
+let allVoices = [];
+let currentAudio = null;
 
-    document.getElementById('total-count').innerText = currentWords.length;
-    
-    if(currentMode === 'card') {
-        document.getElementById('correct-count').innerText = currentWords.length;
-        document.getElementById('result-msg').innerText = "ぜんぶチェックしたよ！えらい！";
-        document.getElementById('retry-wrong-btn').classList.add('hidden');
-    } else {
-        document.getElementById('correct-count').innerText = quizScore;
-        if(wrongWords.length > 0) {
-            document.getElementById('result-msg').innerText = "まちがえた問題をもう一回やってみよう！";
-            document.getElementById('retry-wrong-btn').classList.remove('hidden');
-        } else {
-            document.getElementById('result-msg').innerText = "満点！パーフェクト！すごすぎる！";
-            document.getElementById('retry-wrong-btn').classList.add('hidden');
-        }
-    }
+/* --- 端末音声（高音質を自動優先） --- */
+function rankVoice(v){
+  // 高音質（拡張/プレミアム/Siri/有名な自然声）を優先
+  let s=0;
+  const n=(v.name||"").toLowerCase();
+  if(/en[-_]us/i.test(v.lang)) s+=5; else if(/^en/i.test(v.lang)) s+=2;
+  if(/enhanced|premium|拡張/.test(n)) s+=6;
+  if(/siri/.test(n)) s+=5;
+  if(/samantha|ava|allison|nora|zoe|evan|nathan|aaron|joelle/.test(n)) s+=3;
+  if(v.localService===false) s+=1;
+  return s;
+}
+function refreshVoices(){
+  if(!('speechSynthesis' in window)) return;
+  allVoices = speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));
+  allVoices.sort((a,b)=>rankVoice(b)-rankVoice(a));
+  if(!voiceName && allVoices[0]) voiceName=allVoices[0].name;
+}
+function getDeviceVoice(){
+  return allVoices.find(v=>v.name===voiceName) || allVoices[0] || null;
+}
+if('speechSynthesis' in window){
+  refreshVoices();
+  speechSynthesis.onvoiceschanged = refreshVoices;
 }
 
-// スタート
-restartGame();
+/* --- オンラインのクリア音声（Google TTS, 高音質） --- */
+function onlineUrl(text){
+  return "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en-US&q="+encodeURIComponent(text);
+}
+function speakOnline(text){
+  return new Promise((resolve,reject)=>{
+    try{
+      if(currentAudio){ currentAudio.pause(); }
+      const a=new Audio(onlineUrl(text));
+      currentAudio=a;
+      a.onended=resolve;
+      a.onerror=()=>reject(new Error("audio error"));
+      const p=a.play();
+      if(p && p.catch) p.catch(reject);
+    }catch(e){ reject(e); }
+  });
+}
+
+/* --- 端末音声で読む --- */
+function speakDevice(text){
+  if(!('speechSynthesis' in window)) return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang="en-US"; u.rate=rate; u.pitch=1.0;
+    const v=getDeviceVoice(); if(v) u.voice=v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* --- 共通：モードに応じて発音。オンライン失敗時は端末音声へ --- */
+function speak(text){
+  if(voiceMode==="online"){
+    speakOnline(text).catch(()=>speakDevice(text));
+  }else{
+    speakDevice(text);
+  }
+}
+function unlockSpeech(){
+  // iOSは最初のユーザー操作内で一度しゃべらせると以後解放される
+  if('speechSynthesis' in window){
+    try{ const u=new SpeechSynthesisUtterance(" "); u.volume=0; speechSynthesis.speak(u); }catch(e){}
+  }
+  // オンライン音声も無音で一度叩いて解放
+  if(voiceMode==="online"){
+    try{ const a=new Audio(onlineUrl(" ")); a.volume=0; const p=a.play(); if(p&&p.catch)p.catch(()=>{}); }catch(e){}
+  }
+  ensureAudioCtx(); // 効果音用のオーディオも解放（ユーザー操作内で）
+}
+function stopSpeak(){
+  if('speechSynthesis' in window){ try{speechSynthesis.cancel();}catch(e){} }
+  if(currentAudio){ try{currentAudio.pause();}catch(e){} }
+}
+
+
+/* ============ クリア演出（コンフェッティ＋効果音） ============ */
+const confettiCanvas = document.getElementById("confetti");
+const cctx = confettiCanvas.getContext("2d");
+let parts = [], confettiRAF = null;
+const CONF_COLORS = ["#ffd23f","#ff8a3d","#ff5b8a","#7ec8ff","#8ce99a","#b06bff","#ffffff","#ffb01f"];
+function sizeCanvas(){ confettiCanvas.width = innerWidth; confettiCanvas.height = innerHeight; }
+function burst(cx, cy, n, spread, up){
+  for(let i=0;i<n;i++){
+    const ang = (Math.random()-0.5)*spread - (up?Math.PI/2:0);
+    const sp = 6 + Math.random()*12;
+    parts.push({
+      x:cx, y:cy,
+      vx:Math.cos(ang)*sp*(0.6+Math.random()),
+      vy:Math.sin(ang)*sp - (up?Math.random()*6:0),
+      g:0.28+Math.random()*0.18, size:6+Math.random()*9,
+      rot:Math.random()*6.28, vr:(Math.random()-0.5)*0.5,
+      color:CONF_COLORS[(Math.random()*CONF_COLORS.length)|0],
+      shape:Math.random()<0.5?"rect":"circ",
+      life:0, maxLife:120+Math.random()*70
+    });
+  }
+  if(!confettiRAF) confettiRAF = requestAnimationFrame(tickConfetti);
+}
+function tickConfetti(){
+  cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+  for(const p of parts){ p.vy+=p.g; p.vx*=0.99; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.life++; }
+  parts = parts.filter(p=>p.life<p.maxLife && p.y<confettiCanvas.height+50);
+  for(const p of parts){
+    cctx.save(); cctx.translate(p.x,p.y); cctx.rotate(p.rot);
+    cctx.globalAlpha = Math.max(0, 1-(p.life/p.maxLife));
+    cctx.fillStyle = p.color;
+    if(p.shape==="rect") cctx.fillRect(-p.size/2,-p.size/2,p.size,p.size*0.6);
+    else { cctx.beginPath(); cctx.arc(0,0,p.size/2,0,6.28); cctx.fill(); }
+    cctx.restore();
+  }
+  if(parts.length) confettiRAF = requestAnimationFrame(tickConfetti);
+  else { cctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height); confettiRAF=null; }
+}
+/* 効果音（Web Audioでファンファーレを合成） */
+let actx = null;
+function ensureAudioCtx(){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==="suspended") actx.resume();
+  }catch(e){}
+}
+/* クリア音：今風のキラキラ✨ベルチャイム */
+function playFanfare(big){
+  ensureAudioCtx(); if(!actx) return;
+  const now = actx.currentTime;
+  const master = actx.createGain();
+  master.gain.value = 0.9; master.connect(actx.destination);
+  // ベル風の1音（基音＋倍音で透明感）
+  function bell(f, t, dur, vol){
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = "sine"; o.frequency.value = f;
+    const o2 = actx.createOscillator(), g2 = actx.createGain();
+    o2.type = "sine"; o2.frequency.value = f*2.01;
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol,t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    g2.gain.setValueAtTime(0.0001,t);
+    g2.gain.exponentialRampToValueAtTime(vol*0.35,t+0.012);
+    g2.gain.exponentialRampToValueAtTime(0.0001,t+dur*0.6);
+    o.connect(g); g.connect(master); o2.connect(g2); g2.connect(master);
+    o.start(t); o.stop(t+dur+0.05); o2.start(t); o2.stop(t+dur+0.05);
+  }
+  // 明るいペンタトニックの上昇
+  const seq = [523.25, 659.25, 783.99, 1046.50];   // C5 E5 G5 C6
+  seq.forEach((f,i)=> bell(f, now + i*0.085, 0.9, 0.32));
+  if(big){
+    bell(1318.51, now + seq.length*0.085, 1.3, 0.34);   // E6でしめ
+    // キラキラ降ってくる粒
+    for(let i=0;i<7;i++){
+      const t = now + 0.45 + Math.random()*0.9;
+      bell(1568 + Math.random()*900, t, 0.55, 0.12);
+    }
+  }
+}
+function vibrate(pattern){ try{ if(navigator.vibrate) navigator.vibrate(pattern); }catch(e){} }
+/* power: 1=通常クリア / 2=ノーミス / 3=全パート制覇 */
+function celebrate(power){
+  sizeCanvas();
+  const W=innerWidth, topY=innerHeight*0.34;
+  burst(W*0.5, topY, power>=2?160:110, 1.7, true);
+  if(power>=2){
+    setTimeout(()=>burst(W*0.30, topY, 80, 1.4, true), 220);
+    setTimeout(()=>burst(W*0.70, topY, 80, 1.4, true), 360);
+  }
+  if(power>=3){
+    // 左右からのキャノン＋追い打ち
+    setTimeout(()=>burst(0, innerHeight*0.9, 120, 0.9, true), 120);
+    setTimeout(()=>burst(W, innerHeight*0.9, 120, 0.9, true), 120);
+    setTimeout(()=>burst(W*0.5, topY, 140, 1.9, true), 600);
+    setTimeout(()=>burst(W*0.5, topY, 120, 1.9, true), 1000);
+  }
+  playFanfare(power>=2);
+  vibrate(power>=3?[0,40,40,40,40,80]:power>=2?[0,30,30,50]:[0,40]);
+}
+
+/* ============ ユーティリティ ============ */
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+let toastTimer=null;
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove("show"),1800);
+}
+
+/* ============ 起動 ============ */
+seedIfEmpty();
+goHome();
 </script>
-
 </body>
 </html>
