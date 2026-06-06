@@ -197,6 +197,7 @@
 
 </main>
 <canvas id="confetti"></canvas>
+<audio id="ttsAudio" playsinline preload="auto"></audio>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -621,6 +622,11 @@ let voiceName = "";
 let rate = 0.9;
 let allVoices = [];
 let currentAudio = null;
+/* iOS対策：1つの<audio>を使い回す（毎回new Audioだと再生がブロックされる） */
+const ttsAudio = document.getElementById("ttsAudio");
+let audioUnlocked = false;
+/* 解錠用のごく短い無音WAV（data URI） */
+const SILENT_WAV = "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=";
 
 /* --- 端末音声（高音質を自動優先） --- */
 function rankVoice(v){
@@ -655,12 +661,13 @@ function onlineUrl(text){
 function speakOnline(text){
   return new Promise((resolve,reject)=>{
     try{
-      if(currentAudio){ currentAudio.pause(); }
-      const a=new Audio(onlineUrl(text));
-      currentAudio=a;
-      a.onended=resolve;
-      a.onerror=()=>reject(new Error("audio error"));
-      const p=a.play();
+      // 解錠済みの同じ<audio>を使い回す（iOSで確実に鳴らすため）
+      ttsAudio.onended = ()=>resolve();
+      ttsAudio.onerror = ()=>reject(new Error("audio error"));
+      ttsAudio.muted = false;
+      ttsAudio.src = onlineUrl(text);
+      ttsAudio.load();
+      const p = ttsAudio.play();
       if(p && p.catch) p.catch(reject);
     }catch(e){ reject(e); }
   });
@@ -686,20 +693,31 @@ function speak(text){
     speakDevice(text);
   }
 }
+/* ユーザー操作の中で1回だけ呼ぶと、以後プログラムから音声を鳴らせる（iOS必須） */
 function unlockSpeech(){
-  // iOSは最初のユーザー操作内で一度しゃべらせると以後解放される
   if('speechSynthesis' in window){
     try{ const u=new SpeechSynthesisUtterance(" "); u.volume=0; speechSynthesis.speak(u); }catch(e){}
   }
-  // オンライン音声も無音で一度叩いて解放
-  if(voiceMode==="online"){
-    try{ const a=new Audio(onlineUrl(" ")); a.volume=0; const p=a.play(); if(p&&p.catch)p.catch(()=>{}); }catch(e){}
+  // 使い回す<audio>を無音で一度再生して解錠
+  if(!audioUnlocked){
+    try{
+      ttsAudio.muted = true;
+      ttsAudio.src = SILENT_WAV;
+      const p = ttsAudio.play();
+      const done = ()=>{ try{ ttsAudio.pause(); ttsAudio.currentTime=0; ttsAudio.muted=false; }catch(e){} audioUnlocked=true; };
+      if(p && p.then) p.then(done).catch(()=>{ ttsAudio.muted=false; });
+      else done();
+    }catch(e){ ttsAudio.muted=false; }
   }
-  ensureAudioCtx(); // 効果音用のオーディオも解放（ユーザー操作内で）
+  ensureAudioCtx();
+  // Web Audio（効果音）も無音バッファで解錠
+  if(actx){
+    try{ const b=actx.createBuffer(1,1,22050); const s=actx.createBufferSource(); s.buffer=b; s.connect(actx.destination); s.start(0); }catch(e){}
+  }
 }
 function stopSpeak(){
   if('speechSynthesis' in window){ try{speechSynthesis.cancel();}catch(e){} }
-  if(currentAudio){ try{currentAudio.pause();}catch(e){} }
+  try{ ttsAudio.pause(); }catch(e){}
 }
 
 
